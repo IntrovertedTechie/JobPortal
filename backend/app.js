@@ -29,7 +29,8 @@ app.use(errorHandler);
 
 
 
-//ROUTES MIDDLEWARE                            
+//ROUTES MIDDLEWARE
+app.use('/', authRoutes);
 app.use('/api', authRoutes);
 
 
