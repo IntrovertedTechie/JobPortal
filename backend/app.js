@@ -6,8 +6,8 @@ const bodyParser = require("body-parser");
 require("dotenv").config();
 var cors = require('cors');
 const cookieParser = require('cookie-parser');
-
-
+const errorHandler = require("./middleware/error");
+const authRoutes = require('./routes/authRoutes');
 
 
 // Database connection
@@ -18,11 +18,19 @@ mongoose.connect(process.env.DATABASE, {
     .catch((err) => console.log(err));
 
 
+
+
 //MIDDLEWARE
 app.use(morgan('dev'));                        app.use(bodyParser.json({ limit: "5mb" }));    app.use(bodyParser.urlencoded({                    limit: "5mb",
     extended: true
 }));                                           app.use(cookieParser());
-app.use(cors());                                                                              // error middleware                            app.use(errorHandler);
+app.use(cors());                                                                              // error middleware                            
+app.use(errorHandler);
+
+
+
+//ROUTES MIDDLEWARE                            
+app.use('/api', authRoutes);
 
 
 
