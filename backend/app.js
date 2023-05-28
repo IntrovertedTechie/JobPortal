@@ -8,7 +8,7 @@ var cors = require('cors');
 const cookieParser = require('cookie-parser');
 const errorHandler = require("./middleware/error");
 const authRoutes = require('./routes/authRoutes');
-
+const userRoutes = require('./routes/userRoutes');
 
 // Database connection
 mongoose.connect(process.env.DATABASE, {
@@ -32,7 +32,7 @@ app.use(errorHandler);
 //ROUTES MIDDLEWARE
 app.use('/', authRoutes);
 app.use('/api', authRoutes);
-
+app.use('/api', userRoutes);
 
 
 //port
