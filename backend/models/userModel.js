@@ -1,66 +1,68 @@
+const mysql = require('mysql2/promise');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
-const mongoose = require('mongoose');
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+// Create a connection
+const connection = mysql.createConnection({
+  host: 'localhost',
+  user: 'root',
+  password: '',
+  database: 'JobPortal',
+});
 
-const userSchema = new mongoose.Schema({
+// User schema
+const userSchema = {
+  firstName: {
+    type: 'VARCHAR(32)',
+    allowNull: false,
+  },
+  lastName: {
+    type: 'VARCHAR(32)',
+    allowNull: false,
+  },
+  email: {
+    type: 'VARCHAR(255)',
+    allowNull: false,
+    unique: true,
+  },
+  password: {
+    type: 'VARCHAR(255)',
+    allowNull: false,
+  },
+  role: {
+    type: 'INT',
+    defaultValue: 0,
+  },
+};
 
-    firstName: {
-        type: String,
-        trim: true,
-        required: [true, 'first name is required'],
-        maxlength: 32,
-    },
-    lastName: {
-        type: String,
-        trim: true,
-        required: [true, 'last name is required'],
-        maxlength: 32,
-    },
-    email: {
-        type: String,
-        trim: true,
-        required: [true, 'e-mail is required'],
-        unique: true,
-        match: [
-            /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
-            'Please add a valid email'
-        ]
-    },
-    password: {
-        type: String,
-        trim: true,
-        required: [true, 'password is required'],
-        minlength: [6, 'password must have at least (6) caracters'],
-    },
-
-    role: {
-        type: Number,
-        default: 0
-    }
-
-}, { timestamps: true })
-
-//encrypting password before saving
-userSchema.pre('save', async function (next) {
-    if (!this.isModified('password')) {
-        next();
-    }
-    this.password = await bcrypt.hash(this.password, 10)
-})
-
-// compare user password
-userSchema.methods.comparePassword = async function (enteredPassword) {
-    return await bcrypt.compare(enteredPassword, this.password)
+// Function to execute SQL queries
+async function executeQuery(query, values = []) {
+  const [rows] = await connection.execute(query, values);
+  return rows;
 }
 
-// return a JWT token
-userSchema.methods.getJwtToken = function () {
-    return jwt.sign({ id: this.id }, process.env.JWT_SECRET, {
-        expiresIn: 3600
-    });
+// Function to encrypt password before saving
+async function encryptPassword(password) {
+  return await bcrypt.hash(password, 10);
 }
 
+// Function to compare user password
+async function comparePassword(enteredPassword, hashedPassword) {
+  return await bcrypt.compare(enteredPassword, hashedPassword);
+}
 
+// Function to return a JWT token
+function getJwtToken(id) {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: 3600,
+  });
+}
 
-module.exports = mongoose.model("User", userSchema);
+module.exports = {
+  userSchema,
+  executeQuery,
+  encryptPassword,
+  comparePassword,
+  getJwtToken,
+};
+
